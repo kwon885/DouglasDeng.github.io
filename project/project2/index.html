@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Douglas Deng" />
+    
+    <link rel="shortcut icon" type="image/x-icon" href="../../img/favicon.ico">
+    <title>project2Final</title>
+    <meta name="generator" content="Hugo 0.83.1" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="../../css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="../../"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="../../post/">BLOG</a></li>
+        
+        <li><a href="../../projects/">PROJECTS</a></li>
+        
+        <li><a href="../../resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="../../project/project2/">project2Final</a></strong>
+          </h3>
+        </div>
+ 
+<div class="blog-title">
+          <h4>
+         January 1, 0001 
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+
+
+<div id="dataset-introduction" class="section level2">
+<h2>Dataset Introduction</h2>
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre><code>## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.0 ──</code></pre>
+<pre><code>## ✓ ggplot2 3.3.3     ✓ purrr   0.3.4
+## ✓ tibble  3.0.4     ✓ dplyr   1.0.2
+## ✓ tidyr   1.1.2     ✓ stringr 1.4.0
+## ✓ readr   1.4.0     ✓ forcats 0.5.0</code></pre>
+<pre><code>## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()</code></pre>
+<pre class="r"><code>data &lt;- read.csv(&quot;data101.csv&quot;)
+data &lt;- data %&gt;% select(-doc_iufd) %&gt;% na.omit()
+data &lt;- data %&gt;% select(-uri)</code></pre>
+<p><em>The dataset looked at pregnancy outcomes in delivery facilities as a part of the East Africa Preterm Birth Initiative that looks to determine opportunities for preinatal mortality prevention. The dataset obtained data at 23 facilities over 18 months, but I only incuded data after omiting any NA values. In particular, I am looking at the varaibles: ga, apgar_1, sex, baby_discharge_status, c_mode_of_delivery, c_mothers_age, and c_birth_weight_g2. All variables had 100 observations. “ga” measures gestational age in weeks. “apgar_1” measures its APGAR score at 1 minutes ranging from 1 to 10. This was repeated again at 5 minutes. “Sex” is the sex of which is either male of female. “baby_discharge_status” describes the status of the baby at discharge. “c_mode_of_delivery” is the mode of the delivery for the baby. “c_mothers_age” is the mother’s age upon giving birth (years). “c_brith_weight_g2” is the baby’s birth weight in grams. The removed variables pertain to record identifiers to each individual mother. Hopefully, the remaining variables are fairly self-explanatory by its title.</em></p>
+</div>
+<div id="r-markdown" class="section level2">
+<h2>R Markdown</h2>
+<pre class="r"><code>man2 &lt;- manova(cbind(ga,c_mothers_age, c_birth_weight_g2,apgar_1,apgar_5)~c_birth_outcome, data=data)
+summary(man2)</code></pre>
+<pre><code>##                 Df  Pillai approx F num Df den Df    Pr(&gt;F)    
+## c_birth_outcome  1 0.67363   38.803      5     94 &lt; 2.2e-16 ***
+## Residuals       98                                             
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>summary.aov(man2)</code></pre>
+<pre><code>##  Response ga :
+##                 Df Sum Sq Mean Sq F value Pr(&gt;F)
+## c_birth_outcome  1   2.97  2.9703  0.7259 0.3963
+## Residuals       98 400.99  4.0917               
+## 
+##  Response c_mothers_age :
+##                 Df  Sum Sq Mean Sq F value Pr(&gt;F)
+## c_birth_outcome  1   12.41  12.412  0.3864 0.5356
+## Residuals       98 3147.70  32.119               
+## 
+##  Response c_birth_weight_g2 :
+##                 Df   Sum Sq Mean Sq F value Pr(&gt;F)
+## c_birth_outcome  1    64429   64429  0.2173 0.6421
+## Residuals       98 29053471  296464               
+## 
+##  Response apgar_1 :
+##                 Df Sum Sq Mean Sq F value    Pr(&gt;F)    
+## c_birth_outcome  1 171.66 171.657  120.94 &lt; 2.2e-16 ***
+## Residuals       98 139.09   1.419                      
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##  Response apgar_5 :
+##                 Df Sum Sq Mean Sq F value    Pr(&gt;F)    
+## c_birth_outcome  1 231.94 231.945  171.56 &lt; 2.2e-16 ***
+## Residuals       98 132.50   1.352                      
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>pairwise.t.test(data$apgar_1, data$c_birth_outcome, p.adj=&quot;none&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  data$apgar_1 and data$c_birth_outcome 
+## 
+##             Born_Alive
+## Still_Birth &lt;2e-16    
+## 
+## P value adjustment method: none</code></pre>
+<pre class="r"><code>pairwise.t.test(data$apgar_5, data$c_birth_outcome, p.adj=&quot;none&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  data$apgar_5 and data$c_birth_outcome 
+## 
+##             Born_Alive
+## Still_Birth &lt;2e-16    
+## 
+## P value adjustment method: none</code></pre>
+<pre class="r"><code>1-(0.95^8)</code></pre>
+<pre><code>## [1] 0.3365796</code></pre>
+<pre class="r"><code>0.06/8</code></pre>
+<pre><code>## [1] 0.0075</code></pre>
+<pre class="r"><code>ggplot(data, aes(x = apgar_1, y = apgar_5)) +  geom_point(alpha = .5) + geom_density_2d(h=2) + coord_fixed() + facet_wrap(~c_birth_outcome)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<pre class="r"><code>library(rstatix)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;rstatix&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:stats&#39;:
+## 
+##     filter</code></pre>
+<pre class="r"><code>group &lt;- data$c_birth_outcome
+DVs &lt;- data %&gt;% select(ga,c_mothers_age,c_birth_weight_g2,apgar_1,apgar_5)
+box_m(DVs, group)</code></pre>
+<pre><code>## Warning in box_m(DVs, group): there are one or more levels with less
+## observations than variables!</code></pre>
+<pre><code>## # A tibble: 1 x 4
+##   statistic p.value parameter method                                            
+##       &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;                                             
+## 1       Inf       0        15 Box&#39;s M-test for Homogeneity of Covariance Matric…</code></pre>
+<pre class="r"><code>lapply(split(DVs,group), cov)</code></pre>
+<pre><code>## $Born_Alive
+##                            ga c_mothers_age c_birth_weight_g2     apgar_1
+## ga                  4.1561426    -0.5076246          413.7027   0.5800043
+## c_mothers_age      -0.5076246    30.0940722          668.7285   0.6073883
+## c_birth_weight_g2 413.7027491   668.7285223       300695.8763 218.5352234
+## apgar_1             0.5800043     0.6073883          218.5352   1.4488832
+## apgar_5             0.5200816     0.6757947          219.8776   1.2891967
+##                       apgar_5
+## ga                  0.5200816
+## c_mothers_age       0.6757947
+## c_birth_weight_g2 219.8775773
+## apgar_1             1.2891967
+## apgar_5             1.3801546
+## 
+## $Still_Birth
+##                    ga c_mothers_age c_birth_weight_g2 apgar_1 apgar_5
+## ga                  1      -11.0000           300.000       0       0
+## c_mothers_age     -11      129.3333         -3133.333       0       0
+## c_birth_weight_g2 300    -3133.3333         93333.333       0       0
+## apgar_1             0        0.0000             0.000       0       0
+## apgar_5             0        0.0000             0.000       0       0</code></pre>
+<p><em>A MONOVA test was conducted to determine the effects of birth outcome(Born alive or still birth) on various numeric, dependent varaibles (ga, c_mothers_age, c_birth_weight_g2, apar_1, apgar_5). Significant differences were found among the two birth outcomes for at least one of the dependent variables. Performing an one-way ANOVA for each variable, “apgar_1” and “apgar_5” were significant meaning at least one birth outcome differs. There were a total of 8 tests: 1 MANOVA, 5 ANOVAS, and 2 unique t-tests. The probability of at least one Type I error is 33.658%. The bonferrroni correction adjusted the significance level to 0.0075. Even after using the conversative alpha value, the post-hoc t tests are still significant. The post-hoc t-tests show that “born alive” versus “still birth” groups significantly differed from each other in terms of “apgar_1” and “apgar_5” value after adjusting for multiple comparisons. (p&lt;0.0075). The MANOVA assumptions were likely not met. The dataset may not be completely random as the original dataset had over 60,000 observations and I only a few hundred rows that was further reduced to those without any N/A values. From the ggplot it is clear from the two significant variables apgar_1 and apgar_5 that there DVs do not have multivariate normality because the dataset distribution do not look similar between the two dependent variables. The test of homogeneity provides a p-value of zero, so one can assume there was no relative homogeneity.</em></p>
+</div>
+<div id="randomization-test" class="section level2">
+<h2>Randomization Test</h2>
+<pre class="r"><code>data %&gt;% group_by(c_mode_of_delivery) %&gt;%
+    summarize(means=mean(c_birth_weight_g2)) %&gt;% summarize(&#39;mean_diff&#39;=diff(means))</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##   mean_diff
+##       &lt;dbl&gt;
+## 1      82.0</code></pre>
+<pre class="r"><code>rand_dist&lt;-vector()
+for(i in 1:5000){
+    new&lt;-data.frame(time=sample(data$c_birth_weight_g2),condition=data$c_mode_of_delivery)
+    rand_dist[i]&lt;-mean(new[new$condition==&quot;Caesarean_Section&quot;,]$time)-  
+              mean(new[new$condition==&quot;Vaginal_Delivery&quot;,]$time)
+    }
+
+{hist(rand_dist,main=&quot;&quot;,ylab=&quot;&quot;); abline(v = c(-82.044, 82.044),col=&quot;red&quot;)}</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<pre class="r"><code>mean(rand_dist&gt;82.044 | rand_dist &lt; -82.044)</code></pre>
+<pre><code>## [1] 0.5234</code></pre>
+<p><em>The two variables are the categorical mode of delivery (cesarean or vaginal) and at baby’s birthweight in grams (“c_birth_weight_g2”). A randomization test was performed because potentially because the samples were too small to meet any assumptions. A mean difference test statistic was recorded to know of association between the categorical variable vs. numeric variable. The null hypothesis is that the mean birth weight is the same for cesarean vs. vaginal deliveries. The alternative hypothesis is that the mean birth weight is difference for cesarean vs. vaginal deliveries. Babies from a vaginal delivery had a birth weight 82.044 grams greater than babies delivered from a cesarean on average. The two-tailed p-value of 0.5318 tells us that we fail to reject the null hypothesis and that there is the mean birth weight is the same for both modes of delivery. The histogram shows are significant amount of mean differences falls beyond the observed mean difference (82.044 grams).</em></p>
+</div>
+<div id="linear-regression-model" class="section level2">
+<h2>Linear Regression Model</h2>
+<pre class="r"><code>data$c_apgar_1 &lt;- data$apgar_1 - mean(data$apgar_1) 
+fit &lt;- lm(c_birth_weight_g2~c_apgar_1*c_mode_of_delivery,data=data)                               
+summary(fit)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = c_birth_weight_g2 ~ c_apgar_1 * c_mode_of_delivery, 
+##     data = data)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1547.83  -253.60    10.41   389.31  1268.84 
+## 
+## Coefficients:
+##                                              Estimate Std. Error t value
+## (Intercept)                                   3130.33     114.85  27.256
+## c_apgar_1                                      183.33      75.90   2.415
+## c_mode_of_deliveryVaginal_Delivery              -8.13     129.62  -0.063
+## c_apgar_1:c_mode_of_deliveryVaginal_Delivery  -126.24      82.70  -1.527
+##                                              Pr(&gt;|t|)    
+## (Intercept)                                    &lt;2e-16 ***
+## c_apgar_1                                      0.0176 *  
+## c_mode_of_deliveryVaginal_Delivery             0.9501    
+## c_apgar_1:c_mode_of_deliveryVaginal_Delivery   0.1302    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 525.9 on 96 degrees of freedom
+## Multiple R-squared:  0.08824,    Adjusted R-squared:  0.05974 
+## F-statistic: 3.097 on 3 and 96 DF,  p-value: 0.03046</code></pre>
+<pre class="r"><code>data %&gt;% ggplot(aes(c_apgar_1,c_birth_weight_g2, color = c_mode_of_delivery)) + geom_smooth(method=&quot;lm&quot;)</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<pre class="r"><code>summary(fit)$r.sq</code></pre>
+<pre><code>## [1] 0.08823745</code></pre>
+<pre class="r"><code>resids &lt;-lm(c_birth_weight_g2~c_apgar_1*c_mode_of_delivery,data=data)$residuals
+fitted &lt;- lm(c_birth_weight_g2~c_apgar_1*c_mode_of_delivery,data=data)$fitted.values
+resids&lt;- fit$residuals
+fitvals &lt;- fit$fitted.values
+ggplot()+geom_point(aes(fitvals,resids))+geom_hline(yintercept=0, color=&#39;red&#39;)        </code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-4-2.png" width="672" /></p>
+<pre class="r"><code>ggplot()+geom_histogram(aes(resids),bins=20)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-4-3.png" width="672" /></p>
+<pre class="r"><code>library(sandwich)
+library(lmtest)</code></pre>
+<pre><code>## Loading required package: zoo</code></pre>
+<pre><code>## 
+## Attaching package: &#39;zoo&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     as.Date, as.Date.numeric</code></pre>
+<pre class="r"><code>bptest(fit)</code></pre>
+<pre><code>## 
+##  studentized Breusch-Pagan test
+## 
+## data:  fit
+## BP = 1.7758, df = 3, p-value = 0.6202</code></pre>
+<pre class="r"><code>summary(fit)$coef  </code></pre>
+<pre><code>##                                                 Estimate Std. Error    t value
+## (Intercept)                                  3130.326087  114.84996 27.2557863
+## c_apgar_1                                     183.333333   75.90400  2.4153316
+## c_mode_of_deliveryVaginal_Delivery             -8.130144  129.62064 -0.0627226
+## c_apgar_1:c_mode_of_deliveryVaginal_Delivery -126.240345   82.69662 -1.5265477
+##                                                  Pr(&gt;|t|)
+## (Intercept)                                  5.584350e-47
+## c_apgar_1                                    1.761375e-02
+## c_mode_of_deliveryVaginal_Delivery           9.501178e-01
+## c_apgar_1:c_mode_of_deliveryVaginal_Delivery 1.301616e-01</code></pre>
+<pre class="r"><code>coeftest(fit, vcov = vcovHC(fit))</code></pre>
+<pre><code>## 
+## t test of coefficients:
+## 
+##                                               Estimate Std. Error t value
+## (Intercept)                                  3130.3261   127.9610 24.4631
+## c_apgar_1                                     183.3333   124.6633  1.4706
+## c_mode_of_deliveryVaginal_Delivery             -8.1301   140.7203 -0.0578
+## c_apgar_1:c_mode_of_deliveryVaginal_Delivery -126.2403   128.6654 -0.9812
+##                                              Pr(&gt;|t|)    
+## (Intercept)                                    &lt;2e-16 ***
+## c_apgar_1                                      0.1447    
+## c_mode_of_deliveryVaginal_Delivery             0.9540    
+## c_apgar_1:c_mode_of_deliveryVaginal_Delivery   0.3290    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p><em>I asked the question does the effect of APGAR value at 1 minutes on birth weight differ by mode of delivery? I mean centered the APGAR values recorded at 1 minute, but it appears many of the varaibles were already mean centered based off of its name labeling (c_…). The mean/predicted birth weight by cesarean mode of delivery with average APGAR_1 value is 3130.33 grams. APGAR_1 values are significantly associated with birth weight: for every 1-unit increase in APGAR_1 value, the predicted birth weight goes up 183.33 grams. Babies from vaginal delivery with an average APGAR_1 value have a predicted birth weight that is 8.13 grams lower than babies from cesarean delivery with average APGAR_1 value. 0.651 of the variation in birth weight is explained by the regression lines of center APGAR_1 values. This partitions the total variation due to the regressions and the remaining due to error. The assumption of linearity from the residuals vs Fitted plot is confirmed due to a relatively, random pattern. The data also appears normally distributed in the histogram. The bp test fails to reject the null hypothesis that there is homoskedasticity (p&gt;0.05). With the more robust standard errors, the p-value of the intercept is now significant which means there is a strong prediction that the birth weight is 3130.33 grams by a cesarean mode of delivery with average APGAR_1 value. Also, its t-test value dropped from 27.256 to 24.463.</em></p>
+</div>
+<div id="bootstrapping-regression-estimates-resampling-observations" class="section level2">
+<h2>Bootstrapping Regression Estimates (Resampling Observations)</h2>
+<pre class="r"><code>#Rerun same regression model (with the interaction), but this time compute bootstrapped standard errors (either by resampling observations or residuals). Discuss any changes you observe in SEs and p-values using these SEs compared to the original SEs and the robust SEs)
+
+
+fit &lt;- lm(c_birth_weight_g2~c_apgar_1*c_mode_of_delivery,data=data) 
+
+
+samp_distn&lt;-replicate(5000, {
+  boot_dat&lt;-data[sample(nrow(data),replace=TRUE),]
+  fit&lt;-lm(c_birth_weight_g2~c_apgar_1*c_mode_of_delivery,data=boot_dat) 
+  coef(fit)
+})
+
+summary(fit)$coef  #normal-theory SEs</code></pre>
+<pre><code>##                                                 Estimate Std. Error    t value
+## (Intercept)                                  3130.326087  114.84996 27.2557863
+## c_apgar_1                                     183.333333   75.90400  2.4153316
+## c_mode_of_deliveryVaginal_Delivery             -8.130144  129.62064 -0.0627226
+## c_apgar_1:c_mode_of_deliveryVaginal_Delivery -126.240345   82.69662 -1.5265477
+##                                                  Pr(&gt;|t|)
+## (Intercept)                                  5.584350e-47
+## c_apgar_1                                    1.761375e-02
+## c_mode_of_deliveryVaginal_Delivery           9.501178e-01
+## c_apgar_1:c_mode_of_deliveryVaginal_Delivery 1.301616e-01</code></pre>
+<pre class="r"><code>coeftest(fit, vcov = vcovHC(fit)) #robust SEs</code></pre>
+<pre><code>## 
+## t test of coefficients:
+## 
+##                                               Estimate Std. Error t value
+## (Intercept)                                  3130.3261   127.9610 24.4631
+## c_apgar_1                                     183.3333   124.6633  1.4706
+## c_mode_of_deliveryVaginal_Delivery             -8.1301   140.7203 -0.0578
+## c_apgar_1:c_mode_of_deliveryVaginal_Delivery -126.2403   128.6654 -0.9812
+##                                              Pr(&gt;|t|)    
+## (Intercept)                                    &lt;2e-16 ***
+## c_apgar_1                                      0.1447    
+## c_mode_of_deliveryVaginal_Delivery             0.9540    
+## c_apgar_1:c_mode_of_deliveryVaginal_Delivery   0.3290    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>samp_distn %&gt;% t %&gt;% as.data.frame %&gt;% summarize_all(sd) #bootstrapped SEs</code></pre>
+<pre><code>##   (Intercept) c_apgar_1 c_mode_of_deliveryVaginal_Delivery
+## 1     127.805   97.8563                           141.8686
+##   c_apgar_1:c_mode_of_deliveryVaginal_Delivery
+## 1                                     105.9195</code></pre>
+<p><em>When compared with original SEs and robust SEs, the SEs increased for the intercept. The boostrapped SE for APGAR_1 values are greater than the original SEs but less than the robust SEs. The bootstrapped SE for mode of delivery (vaginal delivery=1) is greater than the other two SEs. THe bootstrapped SE for the interaction variable is greater than the original SE but less than the robust SE.</em></p>
+</div>
+<div id="logistic-regression-model" class="section level2">
+<h2>Logistic Regression Model</h2>
+<pre class="r"><code>#Fit a logistic regression model predicting a binary variable (if you don&#39;t have one, make/get one) from at least two explanatory variables (interaction not necessary). 
+
+#    - Interpret coefficient estimates in context (10)
+#    - Report a confusion matrix for your logistic regression (5)
+#    - Compute and discuss the Accuracy, Sensitivity (TPR), Specificity (TNR), Precision (PPV), and AUC of your model (5)
+#    - Using ggplot, make a density plot of the log-odds (logit) colored/grouped by your binary outcome variable (5)
+#    - Generate an ROC curve (plot) and calculate AUC (either manually or with a package); interpret (5)
+
+data &lt;- data %&gt;% mutate(y=ifelse(c_mode_of_delivery==&quot;Caesarean_Section&quot;,1,0))
+
+fit2 &lt;-glm(y~sex+c_mothers_age,family=&quot;binomial&quot;,data=data)
+coeftest(fit2)</code></pre>
+<pre><code>## 
+## z test of coefficients:
+## 
+##                Estimate Std. Error z value Pr(&gt;|z|)  
+## (Intercept)   -2.048673   1.116515 -1.8349  0.06652 .
+## sexMale        0.129205   0.488903  0.2643  0.79157  
+## c_mothers_age  0.031047   0.041315  0.7515  0.45237  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>exp(0.129205)</code></pre>
+<pre><code>## [1] 1.137923</code></pre>
+<pre class="r"><code>exp(0.031047)</code></pre>
+<pre><code>## [1] 1.031534</code></pre>
+<pre class="r"><code>tdat&lt;- data %&gt;% mutate(prob=predict(fit2, type=&quot;response&quot;), prediction=ifelse(prob&gt;.5,1,0))
+classify&lt;-tdat%&gt;%transmute(prob,prediction,truth=y)
+table(prediction=classify$prediction,truth=classify$truth)%&gt;%addmargins()</code></pre>
+<pre><code>##           truth
+## prediction   0   1 Sum
+##        0    77  23 100
+##        Sum  77  23 100</code></pre>
+<pre class="r"><code>(77+0)/100 #accuracy</code></pre>
+<pre><code>## [1] 0.77</code></pre>
+<pre class="r"><code>(0)/100 #sensitivity</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>(77)/77 #specificity</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>(0/0) #precision</code></pre>
+<pre><code>## [1] NaN</code></pre>
+<pre class="r"><code>data$logit&lt;- predict(fit2,type=&quot;link&quot;)
+
+
+data%&gt;%ggplot()+geom_density(aes(logit,color=y,fill=y), alpha=.4) +
+    theme(legend.position=c(.85,.85))+ xlab(&quot;logit (log-odds)&quot;)+
+    geom_rug(aes(logit,color=y))</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<pre class="r"><code>library(plotROC)
+tdat1 &lt;- data %&gt;% mutate(prob=predict(fit2,type=&quot;response&quot;), prediction=ifelse(prob&gt;0.5,1,0))
+classify1 &lt;- tdat1 %&gt;% transmute(prob,prediction,truth=y)
+ROCplot2.1&lt;-ggplot(classify1)+geom_roc(aes(d=truth,m=prob), n.cuts=0)+
+  geom_segment(aes(x=0,xend=1,y=0,yend=1),lty=2)
+
+ROCplot2.1</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-6-2.png" width="672" /></p>
+<pre class="r"><code>calc_auc(ROCplot2.1)</code></pre>
+<pre><code>##   PANEL group       AUC
+## 1     1    -1 0.5474308</code></pre>
+<p><em>When looking at the coefficient estimates, when controlling for the mother’s age, male and female clumps of mode of delivery are not significantly different. The odds of a cesarean section for male babies are 1.138 times odds than females babies. Controlling for the baby’s gender, for every one unit increase in the mother’s age, the odds of a cesarean change by a factor of 1.032. The confusion matrix shows that shows a accuracy of 0.77 or the proportion of correctly identified classified mode of delivery. Sensitivity tells us that there a zero proportion of cesarean deliveries were correctly identified. Specificity tells us that there was 1 proportion of vaginal birth correctly classified. The precicsion tells us that 0 proportion classified as a cesarean birth that actually was. The calculated AUC from the ROC plot was determined to be 0.547. This means the model poorly predicts that as the probability that a randomly selected mother with a cesarean delivery has a higher probability than a randomly selected person with a natural birth.</em></p>
+</div>
+<div id="more-logistic-regression" class="section level2">
+<h2>More Logistic Regression</h2>
+<pre class="r"><code>library(knitr)
+opts_chunk$set(fig.align=&quot;center&quot;, fig.height=5, message=FALSE, warning=FALSE, fig.width=8, tidy.opts=list(width.cutoff=60),tidy=TRUE)
+
+class_diag &lt;- function(probs,truth){
+  
+  if(is.character(truth)==TRUE) truth&lt;-as.factor(truth)
+  if(is.numeric(truth)==FALSE &amp; is.logical(truth)==FALSE) truth&lt;-as.numeric(truth)-1
+  
+  tab&lt;-table(factor(probs&gt;.5,levels=c(&quot;FALSE&quot;,&quot;TRUE&quot;)),factor(truth, levels=c(0,1)))
+  acc=sum(diag(tab))/sum(tab)
+  sens=tab[2,2]/colSums(tab)[2]
+  spec=tab[1,1]/colSums(tab)[1]
+  ppv=tab[2,2]/rowSums(tab)[2]
+  
+  #CALCULATE EXACT AUC
+  ord&lt;-order(probs, decreasing=TRUE)
+  probs &lt;- probs[ord]; truth &lt;- truth[ord]
+  
+  TPR=cumsum(truth)/max(1,sum(truth)) 
+  FPR=cumsum(!truth)/max(1,sum(!truth))
+  
+  dup &lt;-c(probs[-1]&gt;=probs[-length(probs)], FALSE)
+  TPR &lt;-c(0,TPR[!dup],1); FPR&lt;-c(0,FPR[!dup],1)
+  n &lt;- length(TPR)
+  auc &lt;- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+
+  data.frame(acc,sens,spec,ppv,auc)
+}
+
+data3 &lt;- data %&gt;% mutate(y=ifelse(c_mode_of_delivery==&quot;Caesarean_Section&quot;,1,0))
+
+fit3 &lt;-glm(y~quarter+c_baby_status+c_birth_weight_g2+referral_in+ga+apgar_1+apgar_5+sex+c_mothers_age+c_mother_status,family=&quot;binomial&quot;,data=data3)</code></pre>
+<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
+<pre class="r"><code>coeftest(fit3)</code></pre>
+<pre><code>## 
+## z test of coefficients:
+## 
+##                                                            Estimate  Std. Error
+## (Intercept)                                             -2.4097e+01  3.9562e+03
+## quarterQ2                                               -2.2281e+00  1.5543e+00
+## quarterQ4                                                1.4683e+01  2.5406e+03
+## c_baby_statusImmediate_Neonatal_Death                    2.3204e+01  3.9562e+03
+## c_baby_statusLive_Baby                                   2.5814e+01  3.9562e+03
+## c_baby_statusMacerated_Still_Birth                      -1.2568e+01  5.3442e+03
+## c_birth_weight_g2                                       -2.5181e-04  6.4992e-04
+## referral_in                                             -6.6906e-01  1.2340e+00
+## ga                                                       1.4942e-01  1.7343e-01
+## apgar_1                                                 -9.1114e-01  5.1989e-01
+## apgar_5                                                  4.4473e-02  5.4294e-01
+## sexMale                                                  5.1799e-02  5.8663e-01
+## c_mothers_age                                            3.7958e-02  5.1517e-02
+## c_mother_statusRan_away_or_Left_Before_Being_Discharged -1.7656e+01  2.4299e+03
+##                                                         z value Pr(&gt;|z|)  
+## (Intercept)                                             -0.0061  0.99514  
+## quarterQ2                                               -1.4336  0.15170  
+## quarterQ4                                                0.0058  0.99539  
+## c_baby_statusImmediate_Neonatal_Death                    0.0059  0.99532  
+## c_baby_statusLive_Baby                                   0.0065  0.99479  
+## c_baby_statusMacerated_Still_Birth                      -0.0024  0.99812  
+## c_birth_weight_g2                                       -0.3874  0.69843  
+## referral_in                                             -0.5422  0.58768  
+## ga                                                       0.8616  0.38891  
+## apgar_1                                                 -1.7526  0.07968 .
+## apgar_5                                                  0.0819  0.93472  
+## sexMale                                                  0.0883  0.92964  
+## c_mothers_age                                            0.7368  0.46124  
+## c_mother_statusRan_away_or_Left_Before_Being_Discharged -0.0073  0.99420  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>prob&lt;-predict(fit3,type=&quot;response&quot;)
+pred&lt;-ifelse(prob&gt;0.5,1,0)
+table(prediction=pred, truth=data3$y) %&gt;% addmargins</code></pre>
+<pre><code>##           truth
+## prediction   0   1 Sum
+##        0    73  17  90
+##        1     4   6  10
+##        Sum  77  23 100</code></pre>
+<pre class="r"><code>(73+6)/100 #accuracy</code></pre>
+<pre><code>## [1] 0.79</code></pre>
+<pre class="r"><code>6/23 #sensitivity</code></pre>
+<pre><code>## [1] 0.2608696</code></pre>
+<pre class="r"><code>73/77 #specificity</code></pre>
+<pre><code>## [1] 0.9480519</code></pre>
+<pre class="r"><code>72/90 #precision</code></pre>
+<pre><code>## [1] 0.8</code></pre>
+<pre class="r"><code>library(plotROC)
+tdat2 &lt;- data3 %&gt;% mutate(prob=predict(fit3,type=&quot;response&quot;), prediction=ifelse(prob&gt;0.5,1,0))
+classify2.1 &lt;- tdat2 %&gt;% transmute(prob,prediction,truth=y)
+ROCplot3.1&lt;-ggplot(classify2.1)+geom_roc(aes(d=truth,m=prob), n.cuts=0)+
+  geom_segment(aes(x=0,xend=1,y=0,yend=1),lty=2)
+
+ROCplot3.1</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<pre class="r"><code>calc_auc(ROCplot3.1)</code></pre>
+<pre><code>##   PANEL group       AUC
+## 1     1    -1 0.7797854</code></pre>
+<pre class="r"><code>set.seed(1234)
+k=10
+
+data1c &lt;- data3 %&gt;% sample_frac
+folds &lt;- ntile(1:nrow(data1c),n=10)
+
+
+diags&lt;-NULL
+for(i in 1:k){
+  train &lt;- data1c[folds!=i,]
+  test &lt;- data1c[folds==i,]
+  truth &lt;- test$y
+  
+  fit1c &lt;-glm(y~quarter+c_baby_status+c_birth_weight_g2+referral_in+ga+apgar_1+apgar_5+sex+c_mothers_age+c_mother_status,family=&quot;binomial&quot;,data=data3)
+  probs1c &lt;- predict(fit1c,newdata=test, type = &quot;response&quot;)
+  
+  diags&lt;- rbind(diags,class_diag(probs1c,truth))
+}</code></pre>
+<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
+<pre class="r"><code>summarize_all(diags,mean)</code></pre>
+<pre><code>##    acc sens      spec ppv       auc
+## 1 0.79  0.3 0.9496032 NaN 0.7508929</code></pre>
+<p><em>I performed a logistic regression of the same binary response variable from the rest of the variables except ones the appeared only related to administrated labeling. Also some dependent variables did have enough variation with only 1 data value. The accuracy value states there was a 79% of all correctly classified mode of delivery. The sensitivity value states there is a 0.261 probability of detecting a caserian delivery if they really had one. The specificity value states there is a 0.948 probability of a natural birth for those that actually had one. The precision value states 0.8 proportion of those classified with a caserian birth as actually having one. The AUC value is better new with a value of 0.780 which means a good probability that a randomly selected person with a cesarean birth has a higher predicted probability than a randomly seelcted person with a natural birth.</em></p>
+<p><em>For the 10-fold CV, the Accuracy, Sensitivity, Specificity, Precision, and AUC are the following: 0.79,0.3,0.94, and 0.75. This AUC value is more or less the same but a little lower in value compared to the AUC value of the in-sample classification. Both the in and out-of-sample have similar prediction ability. This also mean there is no sign of overfitting.</em></p>
+</div>
+<div id="lasso-test" class="section level2">
+<h2>Lasso Test</h2>
+<pre class="r"><code>library(glmnet)
+
+y &lt;- as.matrix(data3$y)
+x &lt;- model.matrix(y ~ quarter + c_baby_status + c_birth_weight_g2 + 
+    referral_in + ga + apgar_1 + apgar_5 + sex + c_mothers_age + 
+    c_mother_status, data = data3)[, -1]
+x &lt;- scale(x)
+
+cv &lt;- cv.glmnet(x, y, family = &quot;binomial&quot;)
+lasso &lt;- glmnet(x, y, family = &quot;binomial&quot;, lambda = cv$lambda.1se)
+coef(lasso)</code></pre>
+<pre><code>## 14 x 1 sparse Matrix of class &quot;dgCMatrix&quot;
+##                                                                    s0
+## (Intercept)                                             -1.208311e+00
+## quarterQ2                                                .           
+## quarterQ4                                                .           
+## c_baby_statusImmediate_Neonatal_Death                    .           
+## c_baby_statusLive_Baby                                   .           
+## c_baby_statusMacerated_Still_Birth                       .           
+## c_birth_weight_g2                                        .           
+## referral_in                                              .           
+## ga                                                       .           
+## apgar_1                                                 -3.937804e-17
+## apgar_5                                                  .           
+## sexMale                                                  .           
+## c_mothers_age                                            .           
+## c_mother_statusRan_away_or_Left_Before_Being_Discharged  .</code></pre>
+<pre class="r"><code>set.seed(1234)
+k = 10
+
+data1d &lt;- data3 %&gt;% sample_frac
+folds &lt;- ntile(1:nrow(data1d), n = 10)
+
+
+diags &lt;- NULL
+for (i in 1:k) {
+    train &lt;- data1d[folds != i, ]
+    test &lt;- data1d[folds == i, ]
+    truth &lt;- test$y
+    
+    fit1d &lt;- glm(y ~ apgar_1, family = &quot;binomial&quot;, data = data3)
+    probs1d &lt;- predict(fit1d, newdata = test, type = &quot;response&quot;)
+    
+    diags &lt;- rbind(diags, class_diag(probs1d, truth))
+}
+
+summarize_all(diags, mean)</code></pre>
+<pre><code>##    acc sens spec ppv      auc
+## 1 0.77    0    1 NaN 0.653621</code></pre>
+<p><em>For the Lasso test, the only variable that was retained was apgar_1 or the baby’s APGAR value 1 minutes after birth. This was the only the non-zero coefficient estimates that was determined to be the most predictive variable for mode of delivery. This models AUC value of 0.654 was the lowest as it dropped a value of 0.1 compared to the other AUC values approximately 0.7.</em></p>
+</div>
+
+            
+        <hr>         <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div> 
+            </div>
+          </div>
+
+   <hr>  <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div> 
+        </div>
+      </div>
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="../../js/docs.min.js"></script>
+<script src="../../js/main.js"></script>
+
+<script src="../../js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>

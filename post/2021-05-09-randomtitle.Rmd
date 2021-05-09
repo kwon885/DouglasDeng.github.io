@@ -1,0 +1,17 @@
+---
+title: RandomTitle
+author: ''
+date: '2021-05-09'
+slug: randomtitle
+categories: []
+tags: []
+description: ''
+---
+
+
+Here is my post! Thanks for reading
+
+[Link to project 1](/project/project1/)
+[Link to google](https://www.google.com)
+
+![](/post/2021-05-09-randomtitle_files/Ghana.jpg)

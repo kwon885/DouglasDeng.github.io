@@ -1,0 +1,231 @@
+---
+title: "project1"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F,
+tidy=TRUE, tidy.opts=list(width.cutoff=60), R.options=list(max.print=100))
+```
+
+## 3 datasets and Join
+
+```{R}
+library(tidyverse)
+car <- read.csv("cars1.csv")
+weather  <- read.csv("weather1.csv")
+moon  <- read.csv("moon.csv")
+
+data <- car %>% left_join(weather, by="Date") %>% left_join(moon, by="Date")
+head(car)
+head(weather)
+head(moon)
+
+```
+
+*My interests first brought me to explore causes for car incidents in Texas. Upon further investigation, I decided to explore weather datasets. My first dataset is from the Texas Department of Transprotation that reports the number of crashes and injuries by Dates. My second dataset is from the National Weather Service Forecast Office that reports  daily weather data in the Texas region.  My third dataset comes from a website that tracks daily moon phases as I considered how the moon may have affected weather conditions. For all three datasets, I only only chose dates in January and February 2019 to limit the size of my data and also observe any patterns particularly at the start of a new year. I had expected some positive correlation between extreme weather conditions and increased traffic incidents.*
+
+*A left join was performed to combine the following three datasets: car accidents, weather, and moon phase. For datasets car and weather, I only chose the Date column in addition to variables of interest as shown later in the data analysis. I did not have to reshape any of my datasets because each observation date in January and Febraury had its own row and each variable had its own column. A left join was most convenient because the rows easily combined by date without any NAs in the added columns. I was also able to control the order at which the added variables appear as new columns. All were joined based on the common value ID of the days of January and February of the year 2019. Therefore, there were 59 observations in each dataset to account for 31 days in January and 28 days in February. No observations were dropped to account for each day in the two months.*
+
+---
+
+## Summary Statistics
+
+```{R}
+data1 <- data %>% select(1,2,3,9,15,16,17,19,21,14,24) %>% arrange(desc(Precip))
+precip <- data1 %>% filter(Precip >0) %>% arrange(desc(Precip)) #days with precipitation
+data1 <- data1 %>% mutate(Change.Temp.Avg = (Temp.Avg - lag(Temp.Avg)))  #change of avg. temp
+
+#done per variable/column
+dataMax <- data1 %>% summarize(Mean= mean(Temp.Max, na.rm=T), Min = min(Temp.Max, na.rm = T),
+    Max = max(Temp.Max, na.rm = T), Sd= sd(Temp.Max, na.rm=T), 
+    Var = var(Temp.Max, na.rm = T)) %>% as.data.frame() %>% pivot_longer(c(1:5), names_to="stats", values_to="Temp.Max")
+
+dataMin <- data1 %>% summarize(Mean= mean(Temp.Min, na.rm=T), Min = min(Temp.Min, na.rm = T),
+Max = max(Temp.Min, na.rm = T), Sd = sd(Temp.Min, na.rm=T), 
+    Var = var(Temp.Min, na.rm = T)) %>% as.data.frame() %>% pivot_longer(c(1:5), names_to="stats", values_to="Temp.Min")
+
+dataAvg <- data1 %>% summarize(Mean= mean(Temp.Avg, na.rm=T), Min = min(Temp.Avg, na.rm = T),
+    Max = max(Temp.Avg, na.rm = T), Sd = sd(Temp.Avg, na.rm=T), 
+    Var = var(Temp.Avg, na.rm = T)) %>% pivot_longer(c(1:5), names_to="stats", values_to="Temp.Avg")
+
+dataPrep <- data1 %>% summarize(Mean= mean(Precip, na.rm=T), Min = min(Precip, na.rm = T),
+    Max = max(Precip, na.rm = T), Sd = sd(Precip, na.rm=T), 
+    Var = var(Precip, na.rm = T)) %>% pivot_longer(c(1:5), names_to="stats", values_to="Prep")
+
+dataCrash <- data1 %>% summarize(Mean= mean(Total.Crashes, na.rm=T), Min = min(Total.Crashes, na.rm = T),
+    Max = max(Total.Crashes, na.rm = T), Sd = sd(Total.Crashes, na.rm=T), 
+    Var = var(Total.Crashes, na.rm = T)) %>% pivot_longer(c(1:5), names_to="stats", values_to="Total.Crashes")
+
+dataChange <- data1 %>% summarize(Mean = mean(Change.Temp.Avg, na.rm=T), Min = min(Change.Temp.Avg, na.rm = T),
+    Max = max(Change.Temp.Avg, na.rm = T), Sd = sd(Change.Temp.Avg, na.rm=T), 
+    Var = var(Change.Temp.Avg, na.rm = T)) %>% pivot_longer(c(1:5), names_to="stats", values_to="Change.Temp.Avg")
+
+data.Fatal.Crashes <- data1 %>% summarize(Mean = mean(Fatal.Crashes, na.rm=T), Min = min(Fatal.Crashes, na.rm = T),
+    Max = max(Fatal.Crashes, na.rm = T), Sd = sd(Fatal.Crashes, na.rm=T), 
+    Var = var(Fatal.Crashes, na.rm = T)) %>% pivot_longer(c(1:5), names_to="stats", values_to="Fatal.Crashes")
+
+data.Fatalities <- data1 %>% summarize(Mean = mean(Fatalities, na.rm=T), Min = min(Fatalities, na.rm = T),
+    Max = max(Fatalities, na.rm = T), Sd = sd(Fatalities, na.rm=T), 
+    Var = var(Fatalities, na.rm = T)) %>% pivot_longer(c(1:5), names_to="stats", values_to="Fatalities")
+
+data.Possible.Injuries <- data1 %>% summarize(Mean = mean(Possible.Injuries, na.rm=T), Min = min(Possible.Injuries, na.rm = T),
+    Max = max(Possible.Injuries, na.rm = T), Sd = sd(Possible.Injuries, na.rm=T), 
+    Var = var(Possible.Injuries, na.rm = T)) %>% pivot_longer(c(1:5), names_to="stats", values_to="Possible.Injuries")
+
+data.HDD <- data1 %>% summarize(Mean = mean(HDD, na.rm=T), Min = min(HDD, na.rm = T),
+    Max = max(HDD, na.rm = T), Sd = sd(HDD, na.rm=T), 
+    Var = var(HDD, na.rm = T)) %>% pivot_longer(c(1:5), names_to="stats", values_to="HDD")
+
+
+dataS <- dataMax %>% left_join(dataMin, by="stats") %>% left_join(dataAvg, by="stats") %>% left_join(dataChange, by="stats") %>% left_join(dataPrep, by="stats") %>% left_join(dataCrash, by="stats") %>% left_join(data.Fatal.Crashes, by="stats") %>% left_join(data.Fatalities, by="stats") %>% left_join(data.Possible.Injuries, by="stats") %>% left_join(data.HDD, by="stats")
+
+#grouped data
+
+Maximum_Temperature <- data1 %>% group_by(Moon.Phase) %>% summarize(Mean= mean(Temp.Max, na.rm=T), Min = min(Temp.Max, na.rm = T),
+    Max = max(Temp.Max, na.rm = T), Sd= sd(Temp.Max, na.rm=T), 
+    Var = var(Temp.Max, na.rm = T)) %>% as.data.frame() %>% select(Temp.Max.Moon.Phase = Moon.Phase, everything())
+  
+
+Minimum_Temperature <- data1 %>% group_by(Moon.Phase) %>% summarize(Mean= mean(Temp.Min, na.rm=T), Min = min(Temp.Min, na.rm = T),
+Max = max(Temp.Min, na.rm = T), Sd = sd(Temp.Min, na.rm=T), 
+    Var = var(Temp.Min, na.rm = T)) %>% as.data.frame() %>% select(Temp.Min.Moon.Phase = Moon.Phase, everything())
+
+
+Average_Temperature <- data1 %>% group_by(Moon.Phase) %>% summarize(Mean= mean(Temp.Avg, na.rm=T), Min = min(Temp.Avg, na.rm = T),
+    Max = max(Temp.Avg, na.rm = T), Sd = sd(Temp.Avg, na.rm=T), 
+    Var = var(Temp.Avg, na.rm = T)) %>% as.data.frame() %>% select(Temp.Avg.Moon.Phase = Moon.Phase, everything())
+
+Precipitation <- data1 %>% group_by(Moon.Phase) %>% summarize(Mean= mean(Precip, na.rm=T), Min = min(Precip, na.rm = T),
+    Max = max(Precip, na.rm = T), Sd = sd(Precip, na.rm=T), 
+    Var = var(Precip, na.rm = T)) %>% as.data.frame() %>% select(Precip.Moon.Phase = Moon.Phase, everything())
+
+Total_Crashes <- data1 %>% group_by(Moon.Phase) %>% summarize(Mean= mean(Total.Crashes, na.rm=T), Min = min(Total.Crashes, na.rm = T),
+    Max = max(Total.Crashes, na.rm = T), Sd = sd(Total.Crashes, na.rm=T), 
+    Var = var(Total.Crashes, na.rm = T)) %>% as.data.frame() %>% select(Crash.Moon.Phase = Moon.Phase, everything())
+
+Change_Average_Temperature <- data1 %>% group_by(Moon.Phase) %>% summarize(Mean = mean(Change.Temp.Avg, na.rm=T), Min = min(Change.Temp.Avg, na.rm = T),
+    Max = max(Change.Temp.Avg, na.rm = T), Sd = sd(Change.Temp.Avg, na.rm=T), 
+    Var = var(Change.Temp.Avg, na.rm = T)) %>% select(Avg.Temp.Change.Moon.Phase = Moon.Phase, everything())
+
+Fatal_Crashes <- data1 %>% group_by(Moon.Phase) %>% summarize(Mean = mean(Fatal.Crashes, na.rm=T), Min = min(Fatal.Crashes, na.rm = T),
+    Max = max(Fatal.Crashes, na.rm = T), Sd = sd(Fatal.Crashes, na.rm=T), 
+    Var = var(Fatal.Crashes, na.rm = T)) %>% select(Fatal.Crashes.Moon.Phase = Moon.Phase, everything())
+
+Possible_Injuries <- data1 %>% group_by(Moon.Phase) %>% summarize(Mean = mean(Possible.Injuries, na.rm=T), Min = min(Possible.Injuries, na.rm = T),
+    Max = max(Possible.Injuries, na.rm = T), Sd = sd(Possible.Injuries, na.rm=T), 
+    Var = var(Possible.Injuries, na.rm = T)) %>% select(Possible.Injuries.Moon.Phase = Moon.Phase, everything())
+
+Fatalities <- data1 %>% group_by(Moon.Phase) %>% summarize(Mean = mean(Fatalities, na.rm=T), Min = min(Fatalities, na.rm = T),
+    Max = max(Fatalities, na.rm = T), Sd = sd(Fatalities, na.rm=T), 
+    Var = var(Fatalities, na.rm = T)) %>% select(Fatalitites.Moon.Phase = Moon.Phase, everything())
+ 
+
+HDD <- data1 %>% group_by(Moon.Phase) %>% summarize(Mean = mean(HDD, na.rm=T), Min = min(HDD, na.rm = T),
+    Max = max(HDD, na.rm = T), Sd = sd(HDD, na.rm=T), 
+    Var = var(HDD, na.rm = T)) %>% select(HDD.Moon.Phase = Moon.Phase, everything()) 
+
+
+dataS
+Maximum_Temperature
+Minimum_Temperature
+Average_Temperature
+Precipitation
+Total_Crashes 
+Change_Average_Temperature
+Fatal_Crashes
+Possible_Injuries
+Fatalities
+HDD
+```
+
+*When wrangling with my joined dataset, I first began by selecting my 11 variables of interest: date, max temperature, mininum temperature, average temperature, precipitation, total crashes, fatal crashes, fatalities, possible injuries, HDD(heating degree days), and moon phase. My main focus was to explore how temperature or precipitation correlated to reported daily total crashes and if moon phase was a confounding variable. To further explore temperature, I created a new variable column called "Change.Temp.Avg" that reported the change in average temperature comparing today's average temperature to the previous day's value. But, the first row reported a NA value because there was no previous averagae temperature value. This was accounted for in subsequent data analysis. I did create a dataset called "precip" that only reported days that rained (prep>0), but there were only 17 reported days which did not meet the 50 observation requirement*
+
+*I rearranged the summary statistics in an effort to make them appear as wide as possible was unable to pivot_longer my joined dataset. The summary statistics mean, min, max, sd, and var were computed for all 10 numeric variables both unground and grouped to the cateogircal variable moon phase. The summary statistics for each numeric variable was pivoted_longer so the summary statistic per variable could be joined together into a single dataset under the common column of summary statistic. Then, by grouping for each numeric variable's summary statistics by the moon phase, I explored any correlation of the moon with the numeric variables. To my surprise, I found that there was an increased mean in the HDD based on the increased percent illumination of the moon phase. But, this was not true for the remaining temperature varaibles like min, max, change average temperature, and average temperature. For the car crash data, there also seemed to be no correlation with moon phase. There was also a great degree of variation for total crashes and possible injuries from its arithmetic mean.*   
+
+
+
+## Graphs
+```{R}
+
+library(ggplot2)
+
+data$Date <- as.Date(data$Date, "%m/%d/%Y")
+ggplot(data = data, aes( Date, Precip,color=Moon.Phase )) + geom_line(aes(group=Moon.Phase))  + geom_point(color = "white" ) + ggtitle("Daily Precipitation as funtion of Time based on Moon Phase") +  ylab("Precipitation(mm)") + xlab("Date(days)") 
+
+ 
+```
+*Plot 1 explored how precipitation changes over dates that were categorized by moon phase under the assumption that the moon can create buldges in the atmosphere and affect precipitation. The results indicate no clear trend. In the two instances of the moon phase waxing crescent during mid January and early February, there is an incidence of precipitation. This is also true for the two instance of the moon phase waning crescent during early January and late February.However, for the rest of the moon phases, there is either zero precipitation of a single day of precipitation.*
+
+```{R}
+
+data2 <- data %>% mutate(Change.Temp.Avg = (Temp.Avg - lag(Temp.Avg)))
+data2 <- data2 %>% mutate(Positive.Negative.Temp.Avg = ifelse(Change.Temp.Avg>0, "positive",
+        ifelse(Change.Temp.Avg <= 0 & 0 <= Change.Temp.Avg, "zero", "negative")))
+data2$Date <- as.Date(data2$Date, "%m/%d/%Y")
+dataNA <- data2 %>% na.omit()
+
+
+ggplot(data = dataNA) + geom_point(mapping = aes(x=Date, y=Temp.Avg, color= Positive.Negative.Temp.Avg)) + geom_point(stat="summary", fun=mean, mapping = aes(x = Date, y = Temp.Avg, color = Positive.Negative.Temp.Avg), size = 4) + stat_summary(aes(x = Date, y = Temp.Avg), fun = "mean", size = 1, geom = "point") + ggtitle("Average Temperature Change over Time") + ylab("Average Temp(F)") + xlab("Date(days)") + labs(fill = "Change in Average Temp") + scale_y_continuous(breaks=seq(30,100,5))
+```
+*Plot 2 explores how the average temperature changes over the days on Janurary and February. To better show positive or negeative changes in average temperature, I created a categorical variable that recognized if the change is a positive value, negative value, or a zero value. The positive, negative, and zero change correspond to the following colors: green, red, and blue. The graph show show no apparent cyclical trend or increase, decrease, or no change in average daily temperature. There are red and green data points all across the entire two months. There was only a single day where the daily temperature did not change from the day prior.*
+*
+
+```{R}
+
+data2 <- data %>% mutate(Change.Temp.Avg = (Temp.Avg - lag(Temp.Avg)))
+data2 <- data2 %>% mutate(Positive.Negative.Temp.Avg = ifelse(Change.Temp.Avg>0, "positive",
+        ifelse(Change.Temp.Avg <= 0 & 0 <= Change.Temp.Avg, "zero", "negative")))
+data2$Date <- as.Date(data2$Date, "%m/%d/%Y")
+dataNA <- data2 %>% na.omit()
+
+datacor <- dataNA %>% select_if(is.numeric) %>% cor(use="pair") %>% as.data.frame()
+
+tidycor <- datacor %>% rownames_to_column("var1") %>% 
+  pivot_longer(-1,names_to="var2",values_to="correlation")
+
+
+tidycor
+library(ggplot2)
+tidycor %>% na.omit() %>% ggplot(aes(var1,var2,fill=correlation))+geom_tile()+
+  scale_fill_gradient2(low="red",mid="yellow",high="green")+
+  geom_text(aes(label=round(correlation,2)),color = "black", size = 1)+
+  theme(axis.text.x = element_text(angle = 90, hjust=1))+ coord_fixed() + xlab("variable 1") +ylab("variable 2")
+```
+*The correlation heatmap was performed with more variable than previous data anlysis but some were removed upon removing any NA values. It is most apparent that there are strongest correlations between variables of similar information. The green patches are found between the traffic accident data and between the weather data variables. There appears to be no correlation between HDD and the temperature variables as shown by a red patches.
+
+## Dimensionality Reduction: PAM Clustering
+```{R}
+
+library(cluster)
+
+dataNA %>% select(-1,-26,-24)%>% pam(3)
+rownames(dataNA) <- NULL
+
+
+dat2 <- dataNA %>% mutate_if(is.character,as.factor) %>% column_to_rownames("Date")
+gower1 <- daisy(dat2,metric="gower")
+
+
+sil_width<-vector()
+for(i in 2:10){
+  pam_fit <- pam(gower1, diss = TRUE, k = i) 
+  sil_width[i] <- pam_fit$silinfo$avg.width  
+}
+ggplot()+geom_line(aes(x=1:10,y=sil_width))+scale_x_continuous(name="k",breaks=1:10)
+
+pam10 <- pam(gower1, k=10, diss = T)
+dataNA %>% slice(pam10$id.med)
+plot(pam10,which=2)
+
+dataNA %>% slice(pam10$id.med)
+
+#install.packages("GGally")
+library(GGally)
+ggpairs(dat2, columns=13:20, aes(color=as.factor(pam10$clustering)))
+```
+
+*I wanted to compared distances with categorical and numeric data so I decided to use gower's distances to measures dissimilarities. Then, I needed to pick the number of cluster by calculating silhouette width indexes. I needed to pick the number of clusters(k) that has the highest silhouette width because the within cluster data is more cohesive and between cluster data is more separated. The graph showed that K=10 had the greatest sil_with value. I then used the pam function to determine the 10 final medoids that are the most representative of their cluster. Among all the 10 clusters, there appears to be no apparent trend for any of the variables. The average silhouette width was 0.11 which indicated no substantial structure was found among the 10 clusters. Therefore, it appears that the cluster structure is not apparent and appears to just be noise. The ggpairs of only the principal weather variables shows that there seems to be strong correlation among the temperature variables but not with the precipitation variable. This is equally little correlation with the weather variables and total crashes except with the precipitation variable.*
+
+
+*

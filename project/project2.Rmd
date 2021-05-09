@@ -1,0 +1,283 @@
+---
+title: "project2Final"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Dataset Introduction
+
+```{R}
+library(tidyverse)
+data <- read.csv("data101.csv")
+data <- data %>% select(-doc_iufd) %>% na.omit()
+data <- data %>% select(-uri)
+
+```
+*The dataset looked at pregnancy outcomes in delivery facilities as a part of the East Africa Preterm Birth Initiative that looks to determine opportunities for preinatal mortality prevention. The dataset obtained data at 23 facilities over 18 months, but I only incuded data after omiting any NA values. In particular, I am looking at the varaibles: ga, apgar_1, sex, baby_discharge_status, c_mode_of_delivery, c_mothers_age, and c_birth_weight_g2. All variables had 100 observations. "ga" measures gestational age in weeks. "apgar_1" measures its APGAR score at 1 minutes ranging from 1 to 10. This was repeated again at 5 minutes. "Sex" is the sex of which is either male of female. "baby_discharge_status" describes the status of the baby at discharge. "c_mode_of_delivery" is the mode of the delivery for the baby. "c_mothers_age" is the mother's age upon giving birth (years). "c_brith_weight_g2" is the baby's birth weight in grams. The removed variables pertain to record identifiers to each individual mother. Hopefully, the remaining variables are fairly self-explanatory by its title.*
+
+
+## R Markdown
+
+```{R}
+man2 <- manova(cbind(ga,c_mothers_age, c_birth_weight_g2,apgar_1,apgar_5)~c_birth_outcome, data=data)
+summary(man2)
+
+summary.aov(man2)
+
+pairwise.t.test(data$apgar_1, data$c_birth_outcome, p.adj="none")
+pairwise.t.test(data$apgar_5, data$c_birth_outcome, p.adj="none")
+
+1-(0.95^8)
+0.06/8
+
+ggplot(data, aes(x = apgar_1, y = apgar_5)) +  geom_point(alpha = .5) + geom_density_2d(h=2) + coord_fixed() + facet_wrap(~c_birth_outcome)
+
+library(rstatix)
+group <- data$c_birth_outcome
+DVs <- data %>% select(ga,c_mothers_age,c_birth_weight_g2,apgar_1,apgar_5)
+box_m(DVs, group)
+lapply(split(DVs,group), cov)
+
+```
+
+*A MONOVA test was conducted to determine the effects of birth outcome(Born alive or still birth) on various numeric, dependent varaibles (ga, c_mothers_age, c_birth_weight_g2, apar_1, apgar_5). Significant differences were found among the two birth outcomes for at least one of the dependent variables. Performing an one-way ANOVA for each variable, "apgar_1" and "apgar_5" were significant meaning at least one birth outcome differs. There were a total of 8 tests: 1 MANOVA, 5 ANOVAS, and 2 unique t-tests. The probability of at least one Type I error is 33.658%. The bonferrroni correction adjusted the significance level to 0.0075. Even after using the conversative alpha value, the post-hoc t tests are still significant. The post-hoc t-tests show that "born alive" versus "still birth" groups significantly differed from each other in terms of "apgar_1" and "apgar_5" value after adjusting for multiple comparisons. (p<0.0075). The MANOVA assumptions were likely not met. The dataset may not be completely random as the original dataset had over 60,000 observations and I only a few hundred rows that was further reduced to those without any N/A values. From the ggplot it is clear from the two significant variables apgar_1 and apgar_5 that there DVs do not have multivariate normality because the dataset distribution do not look similar between the two dependent variables. The test of homogeneity provides a p-value of zero, so one can assume there was no relative homogeneity.* 
+
+
+## Randomization Test
+```{R}
+data %>% group_by(c_mode_of_delivery) %>%
+    summarize(means=mean(c_birth_weight_g2)) %>% summarize('mean_diff'=diff(means))
+
+
+rand_dist<-vector()
+for(i in 1:5000){
+    new<-data.frame(time=sample(data$c_birth_weight_g2),condition=data$c_mode_of_delivery)
+    rand_dist[i]<-mean(new[new$condition=="Caesarean_Section",]$time)-  
+              mean(new[new$condition=="Vaginal_Delivery",]$time)
+    }
+
+{hist(rand_dist,main="",ylab=""); abline(v = c(-82.044, 82.044),col="red")}
+mean(rand_dist>82.044 | rand_dist < -82.044)
+
+```
+
+*The two variables are the categorical mode of delivery (cesarean or vaginal) and at baby's birthweight in grams ("c_birth_weight_g2"). A randomization test was performed because potentially because the samples were too small to meet any assumptions. A mean difference test statistic was recorded to know of association between the categorical variable vs. numeric variable. The null hypothesis is that the mean birth weight is the same for cesarean vs. vaginal deliveries. The alternative hypothesis is that the mean birth weight is difference for cesarean vs. vaginal deliveries. Babies from a vaginal delivery had a birth weight 82.044 grams greater than babies delivered from a cesarean on average. The two-tailed p-value of 0.5318 tells us that we fail to reject the null hypothesis and that there is the mean birth weight is the same for both modes of delivery. The histogram shows are significant amount of mean differences falls beyond the observed mean difference (82.044 grams).* 
+
+## Linear Regression Model
+```{R}
+data$c_apgar_1 <- data$apgar_1 - mean(data$apgar_1) 
+fit <- lm(c_birth_weight_g2~c_apgar_1*c_mode_of_delivery,data=data)                               
+summary(fit)
+
+data %>% ggplot(aes(c_apgar_1,c_birth_weight_g2, color = c_mode_of_delivery)) + geom_smooth(method="lm")
+
+summary(fit)$r.sq
+
+resids <-lm(c_birth_weight_g2~c_apgar_1*c_mode_of_delivery,data=data)$residuals
+fitted <- lm(c_birth_weight_g2~c_apgar_1*c_mode_of_delivery,data=data)$fitted.values
+resids<- fit$residuals
+fitvals <- fit$fitted.values
+ggplot()+geom_point(aes(fitvals,resids))+geom_hline(yintercept=0, color='red')        
+
+ggplot()+geom_histogram(aes(resids),bins=20)
+
+library(sandwich)
+library(lmtest)
+bptest(fit)
+          
+summary(fit)$coef  
+coeftest(fit, vcov = vcovHC(fit))
+
+```
+*I asked the question does the effect of APGAR value at 1 minutes on birth weight differ by mode of delivery? I mean centered the APGAR values recorded at 1 minute, but it appears many of the varaibles were already mean centered based off of its name labeling (c_...). The mean/predicted birth weight by cesarean mode of delivery with average APGAR_1 value is 3130.33 grams. APGAR_1 values are significantly associated with birth weight: for every 1-unit increase in APGAR_1 value, the predicted birth weight goes up 183.33 grams. Babies from vaginal delivery with an average APGAR_1 value have a predicted birth weight that is 8.13 grams lower than babies from cesarean delivery with average APGAR_1 value. 0.651 of the variation in birth weight is explained by the regression lines of center APGAR_1 values. This partitions the total variation due to the regressions and the remaining due to error. The assumption of linearity from the residuals vs Fitted plot is confirmed due to a relatively, random pattern. The data also appears normally distributed in the histogram. The bp test fails to reject the null hypothesis that there is homoskedasticity (p>0.05). With the more robust standard errors, the p-value of the intercept is now significant which means there is a strong prediction that the birth weight is 3130.33 grams by a cesarean mode of delivery with average APGAR_1 value. Also, its t-test value dropped from 27.256 to 24.463.* 
+
+## Bootstrapping Regression Estimates (Resampling Observations)
+```{R}
+#Rerun same regression model (with the interaction), but this time compute bootstrapped standard errors (either by resampling observations or residuals). Discuss any changes you observe in SEs and p-values using these SEs compared to the original SEs and the robust SEs)
+
+
+fit <- lm(c_birth_weight_g2~c_apgar_1*c_mode_of_delivery,data=data) 
+
+
+samp_distn<-replicate(5000, {
+  boot_dat<-data[sample(nrow(data),replace=TRUE),]
+  fit<-lm(c_birth_weight_g2~c_apgar_1*c_mode_of_delivery,data=boot_dat) 
+  coef(fit)
+})
+
+summary(fit)$coef  #normal-theory SEs
+coeftest(fit, vcov = vcovHC(fit)) #robust SEs
+samp_distn %>% t %>% as.data.frame %>% summarize_all(sd) #bootstrapped SEs
+```
+*When compared with original SEs and robust SEs, the SEs increased for the intercept. The boostrapped SE for APGAR_1 values are greater than the original SEs but less than the robust SEs. The bootstrapped SE for mode of delivery (vaginal delivery=1) is greater than the other two SEs. THe bootstrapped SE for the interaction variable is greater than the original SE but less than the robust SE.*
+
+## Logistic Regression Model
+```{R}
+#Fit a logistic regression model predicting a binary variable (if you don't have one, make/get one) from at least two explanatory variables (interaction not necessary). 
+
+#    - Interpret coefficient estimates in context (10)
+#    - Report a confusion matrix for your logistic regression (5)
+#    - Compute and discuss the Accuracy, Sensitivity (TPR), Specificity (TNR), Precision (PPV), and AUC of your model (5)
+#    - Using ggplot, make a density plot of the log-odds (logit) colored/grouped by your binary outcome variable (5)
+#    - Generate an ROC curve (plot) and calculate AUC (either manually or with a package); interpret (5)
+
+data <- data %>% mutate(y=ifelse(c_mode_of_delivery=="Caesarean_Section",1,0))
+
+fit2 <-glm(y~sex+c_mothers_age,family="binomial",data=data)
+coeftest(fit2)
+exp(0.129205)
+exp(0.031047)
+
+
+tdat<- data %>% mutate(prob=predict(fit2, type="response"), prediction=ifelse(prob>.5,1,0))
+classify<-tdat%>%transmute(prob,prediction,truth=y)
+table(prediction=classify$prediction,truth=classify$truth)%>%addmargins()
+(77+0)/100 #accuracy
+(0)/100 #sensitivity
+(77)/77 #specificity
+(0/0) #precision
+
+data$logit<- predict(fit2,type="link")
+
+
+data%>%ggplot()+geom_density(aes(logit,color=y,fill=y), alpha=.4) +
+    theme(legend.position=c(.85,.85))+ xlab("logit (log-odds)")+
+    geom_rug(aes(logit,color=y))
+
+
+library(plotROC)
+tdat1 <- data %>% mutate(prob=predict(fit2,type="response"), prediction=ifelse(prob>0.5,1,0))
+classify1 <- tdat1 %>% transmute(prob,prediction,truth=y)
+ROCplot2.1<-ggplot(classify1)+geom_roc(aes(d=truth,m=prob), n.cuts=0)+
+  geom_segment(aes(x=0,xend=1,y=0,yend=1),lty=2)
+
+ROCplot2.1
+calc_auc(ROCplot2.1)
+
+
+```
+*When looking at the coefficient estimates, when controlling for the mother's age, male and female clumps of mode of delivery are not significantly different. The odds of a cesarean section for male babies are 1.138 times odds than females babies. Controlling for the baby's gender, for every one unit increase in the mother's age, the odds of a cesarean change by a factor of 1.032. The confusion matrix shows that shows a accuracy of 0.77 or the proportion of correctly identified classified mode of delivery. Sensitivity tells us that there a zero proportion of cesarean deliveries were correctly identified. Specificity tells us that there was 1 proportion of vaginal birth correctly classified. The precicsion tells us that 0 proportion classified as a cesarean birth that actually was. The calculated AUC from the ROC plot was determined to be 0.547. This means the model poorly predicts that as the probability that a randomly selected mother with a cesarean delivery has a higher probability than a randomly selected person with a natural birth.*
+
+
+
+## More Logistic Regression
+```{R}
+library(knitr)
+opts_chunk$set(fig.align="center", fig.height=5, message=FALSE, warning=FALSE, fig.width=8, tidy.opts=list(width.cutoff=60),tidy=TRUE)
+
+class_diag <- function(probs,truth){
+  
+  if(is.character(truth)==TRUE) truth<-as.factor(truth)
+  if(is.numeric(truth)==FALSE & is.logical(truth)==FALSE) truth<-as.numeric(truth)-1
+  
+  tab<-table(factor(probs>.5,levels=c("FALSE","TRUE")),factor(truth, levels=c(0,1)))
+  acc=sum(diag(tab))/sum(tab)
+  sens=tab[2,2]/colSums(tab)[2]
+  spec=tab[1,1]/colSums(tab)[1]
+  ppv=tab[2,2]/rowSums(tab)[2]
+  
+  #CALCULATE EXACT AUC
+  ord<-order(probs, decreasing=TRUE)
+  probs <- probs[ord]; truth <- truth[ord]
+  
+  TPR=cumsum(truth)/max(1,sum(truth)) 
+  FPR=cumsum(!truth)/max(1,sum(!truth))
+  
+  dup <-c(probs[-1]>=probs[-length(probs)], FALSE)
+  TPR <-c(0,TPR[!dup],1); FPR<-c(0,FPR[!dup],1)
+  n <- length(TPR)
+  auc <- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+
+  data.frame(acc,sens,spec,ppv,auc)
+}
+
+data3 <- data %>% mutate(y=ifelse(c_mode_of_delivery=="Caesarean_Section",1,0))
+
+fit3 <-glm(y~quarter+c_baby_status+c_birth_weight_g2+referral_in+ga+apgar_1+apgar_5+sex+c_mothers_age+c_mother_status,family="binomial",data=data3)
+coeftest(fit3)
+
+prob<-predict(fit3,type="response")
+pred<-ifelse(prob>0.5,1,0)
+table(prediction=pred, truth=data3$y) %>% addmargins
+
+(73+6)/100 #accuracy
+6/23 #sensitivity
+73/77 #specificity
+72/90 #precision
+
+library(plotROC)
+tdat2 <- data3 %>% mutate(prob=predict(fit3,type="response"), prediction=ifelse(prob>0.5,1,0))
+classify2.1 <- tdat2 %>% transmute(prob,prediction,truth=y)
+ROCplot3.1<-ggplot(classify2.1)+geom_roc(aes(d=truth,m=prob), n.cuts=0)+
+  geom_segment(aes(x=0,xend=1,y=0,yend=1),lty=2)
+
+ROCplot3.1
+calc_auc(ROCplot3.1)
+
+
+set.seed(1234)
+k=10
+
+data1c <- data3 %>% sample_frac
+folds <- ntile(1:nrow(data1c),n=10)
+
+
+diags<-NULL
+for(i in 1:k){
+  train <- data1c[folds!=i,]
+  test <- data1c[folds==i,]
+  truth <- test$y
+  
+  fit1c <-glm(y~quarter+c_baby_status+c_birth_weight_g2+referral_in+ga+apgar_1+apgar_5+sex+c_mothers_age+c_mother_status,family="binomial",data=data3)
+  probs1c <- predict(fit1c,newdata=test, type = "response")
+  
+  diags<- rbind(diags,class_diag(probs1c,truth))
+}
+
+summarize_all(diags,mean)
+
+```
+
+*I performed a logistic regression of the same binary response variable from the rest of the variables except ones the appeared only related to administrated labeling. Also some dependent variables did have enough variation with only 1 data value. The accuracy value states there was a 79% of all correctly classified mode of delivery. The sensitivity value states there is a 0.261 probability of detecting a caserian delivery if they really had one. The specificity value states there is a 0.948 probability of a natural birth for those that actually had one. The precision value states 0.8 proportion of those classified with a caserian birth as actually having one. The AUC value is better new with a value of 0.780 which means a good probability that a randomly selected person with a cesarean birth has a higher predicted probability than a randomly seelcted person with a natural birth.*
+
+*For the 10-fold CV, the Accuracy, Sensitivity, Specificity, Precision, and AUC are the following: 0.79,0.3,0.94, and 0.75. This AUC value is more or less the same but a little lower in value compared to the AUC value of the in-sample classification. Both the in and out-of-sample have similar prediction ability. This also mean there is no sign of overfitting.*
+
+## Lasso Test
+```{R}
+library(glmnet)
+
+y<-as.matrix(data3$y)
+x<-model.matrix(y~quarter+c_baby_status+c_birth_weight_g2+referral_in+ga+apgar_1+apgar_5+sex+c_mothers_age+c_mother_status,data=data3)[,-1]
+x <- scale(x)
+
+cv <- cv.glmnet(x,y,family="binomial")
+lasso <- glmnet(x,y,family="binomial", lambda=cv$lambda.1se)
+coef(lasso)
+
+set.seed(1234)
+k=10
+
+data1d <- data3 %>% sample_frac
+folds <- ntile(1:nrow(data1d),n=10)
+
+
+diags<-NULL
+for(i in 1:k){
+  train <- data1d[folds!=i,]
+  test <- data1d[folds==i,]
+  truth <- test$y
+  
+  fit1d <-glm(y~apgar_1,family="binomial",data=data3)
+  probs1d <- predict(fit1d,newdata=test, type = "response")
+  
+  diags<- rbind(diags,class_diag(probs1d,truth))
+}
+
+summarize_all(diags,mean)
+
+```
+
+*For the Lasso test, the only variable that was retained was apgar_1 or the baby's APGAR value 1 minutes after birth. This was the only the non-zero coefficient estimates that was determined to be the most predictive variable for mode of delivery. This models AUC value of 0.654 was the lowest as it dropped a value of 0.1 compared to the other AUC values approximately 0.7.*
