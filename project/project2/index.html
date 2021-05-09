@@ -60,7 +60,7 @@
  
 <div class="blog-title">
           <h4>
-         January 1, 0001 
+         May 9, 2021 
             &nbsp;&nbsp;
             
           </h4>
@@ -210,7 +210,7 @@ for(i in 1:5000){
 {hist(rand_dist,main=&quot;&quot;,ylab=&quot;&quot;); abline(v = c(-82.044, 82.044),col=&quot;red&quot;)}</code></pre>
 <p><img src="../../project/project2_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
 <pre class="r"><code>mean(rand_dist&gt;82.044 | rand_dist &lt; -82.044)</code></pre>
-<pre><code>## [1] 0.5234</code></pre>
+<pre><code>## [1] 0.5168</code></pre>
 <p><em>The two variables are the categorical mode of delivery (cesarean or vaginal) and at baby’s birthweight in grams (“c_birth_weight_g2”). A randomization test was performed because potentially because the samples were too small to meet any assumptions. A mean difference test statistic was recorded to know of association between the categorical variable vs. numeric variable. The null hypothesis is that the mean birth weight is the same for cesarean vs. vaginal deliveries. The alternative hypothesis is that the mean birth weight is difference for cesarean vs. vaginal deliveries. Babies from a vaginal delivery had a birth weight 82.044 grams greater than babies delivered from a cesarean on average. The two-tailed p-value of 0.5318 tells us that we fail to reject the null hypothesis and that there is the mean birth weight is the same for both modes of delivery. The histogram shows are significant amount of mean differences falls beyond the observed mean difference (82.044 grams).</em></p>
 </div>
 <div id="linear-regression-model" class="section level2">
@@ -343,9 +343,9 @@ summary(fit)$coef  #normal-theory SEs</code></pre>
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
 <pre class="r"><code>samp_distn %&gt;% t %&gt;% as.data.frame %&gt;% summarize_all(sd) #bootstrapped SEs</code></pre>
 <pre><code>##   (Intercept) c_apgar_1 c_mode_of_deliveryVaginal_Delivery
-## 1     127.805   97.8563                           141.8686
+## 1    129.0148  97.77854                           142.2787
 ##   c_apgar_1:c_mode_of_deliveryVaginal_Delivery
-## 1                                     105.9195</code></pre>
+## 1                                     106.2765</code></pre>
 <p><em>When compared with original SEs and robust SEs, the SEs increased for the intercept. The boostrapped SE for APGAR_1 values are greater than the original SEs but less than the robust SEs. The bootstrapped SE for mode of delivery (vaginal delivery=1) is greater than the other two SEs. THe bootstrapped SE for the interaction variable is greater than the original SE but less than the robust SE.</em></p>
 </div>
 <div id="logistic-regression-model" class="section level2">
